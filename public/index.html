@@ -1,77 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>AI Website Builder</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{margin:0;background:#0b1220;color:#e5e7eb;font-family:Arial}
-.container{max-width:1200px;margin:auto;padding:30px}
-textarea{width:100%;min-height:160px;padding:12px;border-radius:8px}
-button,select{padding:10px 16px;border-radius:6px;border:none}
-.primary{background:#38bdf8;color:#000;width:100%;margin-top:10px}
-iframe{width:100%;height:650px;border-radius:8px;background:#fff;border:none}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:900px){.row{grid-template-columns:1fr}}
-</style>
+  <title>AI Website Builder</title>
+  <style>
+    body{font-family:sans-serif;background:#0f172a;color:white;padding:20px}
+    textarea{width:100%;height:120px}
+    iframe{width:100%;height:500px;border:1px solid #334155}
+    button{padding:10px 20px;margin:10px 0}
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>AI Website Builder</h1>
+<h1>AI Website Builder</h1>
 
-  <select id="mode">
-    <option value="single">Single Page Website</option>
-    <option value="multi">Multi Page Website</option>
-  </select>
+<select id="mode">
+  <option value="preview">Live Preview</option>
+  <option value="export">Download Multi-Page Website</option>
+</select>
 
-  <textarea id="prompt" placeholder="Describe your website... (ask for real images, galleries, services, contact)"></textarea>
-  <button class="primary" onclick="generate()">Generate Website</button>
+<textarea id="prompt" placeholder="Describe your website..."></textarea>
 
-  <div class="row">
-    <div>
-      <h3>HTML Editor</h3>
-      <textarea id="editor"></textarea>
-      <button class="primary" onclick="download()">Download HTML</button>
-    </div>
-    <div>
-      <h3>Live Preview</h3>
-      <iframe id="preview"></iframe>
-    </div>
-  </div>
-</div>
+<button onclick="generate()">Generate</button>
+
+<div id="info"></div>
+<iframe id="preview"></iframe>
 
 <script>
 async function generate(){
   const prompt = document.getElementById("prompt").value;
   const mode = document.getElementById("mode").value;
 
-  const res = await fetch("/generate",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ prompt, mode })
-  });
+  if(mode === "preview"){
+    const r = await fetch("/preview", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
+    });
+    const d = await r.json();
+    preview.srcdoc = d.html;
+    info.innerHTML = "";
+  }
 
-  const data = await res.json();
-  if (data.html){
-    editor.value = data.html;
-    preview.srcdoc = data.html;
-  } else {
-    editor.value = "Error generating website";
+  if(mode === "export"){
+    preview.srcdoc = `
+      <h2 style="padding:40px">
+      Preview disabled for multi-page websites.<br>
+      Click below to download.
+      </h2>`;
+    const r = await fetch("/export", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt})
+    });
+    const d = await r.json();
+    info.innerHTML = `<a href="${d.download}" download>⬇ Download Website ZIP</a>`;
   }
 }
-
-function download(){
-  const blob = new Blob([editor.value],{type:"text/html"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "website.html";
-  a.click();
-}
-</script>
-</body>
-</html>
-
 </script>
 
 </body>
