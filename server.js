@@ -1,23 +1,30 @@
 import express from "express";
-import fetch from "node-fetch";
 import fs from "fs";
-import archiver from "archiver";
 import path from "path";
+import archiver from "archiver";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(express.static("public"));
 
+/* ===============================
+   OpenRouter models (fallback)
+================================ */
 const MODELS = [
   "tngtech/deepseek-r1t-chimera:free",
   "deepseek/deepseek-r1-0528:free",
   "alibaba/tongyi-deepresearch-30b-a3b:free"
 ];
 
+/* ===============================
+   AI call with fallback
+================================ */
 async function callAI(prompt) {
   for (const model of MODELS) {
     try {
-      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -26,35 +33,59 @@ async function callAI(prompt) {
         body: JSON.stringify({
           model,
           messages: [
-            { role: "system", content: "Return ONLY valid HTML." },
+            {
+              role: "system",
+              content: "You are a professional web developer. Return ONLY valid HTML."
+            },
             { role: "user", content: prompt }
           ]
         })
       });
-      const d = await r.json();
-      if (d.choices) return d.choices[0].message.content;
-    } catch {}
+
+      const data = await res.json();
+      if (data?.choices?.[0]?.message?.content) {
+        return data.choices[0].message.content;
+      }
+    } catch (err) {
+      console.error("Model failed:", model);
+    }
   }
-  throw new Error("AI failed");
+  throw new Error("All AI models failed");
 }
 
-/* ========= PREVIEW (SPA) ========= */
+/* ===============================
+   PREVIEW MODE (Single-page SPA)
+================================ */
 app.post("/preview", async (req, res) => {
-  const prompt = `
-Create a SINGLE PAGE website for preview.
-Use sections: home, about, services, contact.
-Navigation must use JavaScript (no page reload).
+  try {
+    const prompt = `
+Create a SINGLE PAGE WEBSITE for preview.
+
+Rules:
+- All pages (home, about, services, contact) must be in ONE HTML file
+- Navigation must use JavaScript (no page reload)
+- Use real Unsplash images
+- Long, professional sections
+- Fully responsive
+
 Website idea:
 ${req.body.prompt}
 `;
-  const html = await callAI(prompt);
-  res.json({ html });
+
+    const html = await callAI(prompt);
+    res.json({ html });
+  } catch (e) {
+    res.status(500).json({ error: "Preview generation failed" });
+  }
 });
 
-/* ========= EXPORT (REAL MULTI PAGE) ========= */
+/* ===============================
+   EXPORT MODE (REAL MULTI-PAGE)
+================================ */
 app.post("/export", async (req, res) => {
-  const prompt = `
-Create a REAL MULTI PAGE website.
+  try {
+    const prompt = `
+Create a REAL MULTI-PAGE WEBSITE.
 
 Return EXACTLY in this format:
 
@@ -71,34 +102,57 @@ Return EXACTLY in this format:
 (full HTML)
 
 Rules:
+- Each file must be a COMPLETE HTML document
 - Use real Unsplash images
-- Proper navigation links
+- Proper <a href="..."> navigation between pages
 - Long professional content
+- Same header/footer on all pages
 
 Website idea:
 ${req.body.prompt}
 `;
 
-  const output = await callAI(prompt);
+    const aiOutput = await callAI(prompt);
 
-  const dir = "site";
-  fs.rmSync(dir, { recursive: true, force: true });
-  fs.mkdirSync(dir);
+    const siteDir = "site";
+    fs.rmSync(siteDir, { recursive: true, force: true });
+    fs.mkdirSync(siteDir);
 
-  const parts = output.split(/---(.+?)---/g);
-  for (let i = 1; i < parts.length; i += 2) {
-    fs.writeFileSync(path.join(dir, parts[i].trim()), parts[i + 1].trim());
+    const parts = aiOutput.split(/---(.+?)---/g);
+
+    for (let i = 1; i < parts.length; i += 2) {
+      const filename = parts[i].trim();
+      const content = parts[i + 1].trim();
+      fs.writeFileSync(path.join(siteDir, filename), content);
+    }
+
+    // Create ZIP
+    const zipPath = "public/site.zip";
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    archive.pipe(output);
+    archive.directory(siteDir, false);
+    await archive.finalize();
+
+    res.json({ download: "/site.zip" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Export failed" });
   }
-
-  const zipPath = "public/site.zip";
-  const zip = archiver("zip");
-  zip.pipe(fs.createWriteStream(zipPath));
-  zip.directory(dir, false);
-  await zip.finalize();
-
-  res.json({ download: "/site.zip" });
 });
 
-app.listen(3000, () =>
-  console.log("✅ Running on http://localhost:3000")
-);
+/* ===============================
+   Health check
+================================ */
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
+
+/* ===============================
+   Start server
+================================ */
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log("API KEY loaded:", !!process.env.OPENROUTER_API_KEY);
+});
