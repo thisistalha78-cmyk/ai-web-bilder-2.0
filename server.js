@@ -9,18 +9,21 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ===============================
-   OpenRouter models (fallback)
-================================ */
 const MODELS = [
   "tngtech/deepseek-r1t-chimera:free",
   "deepseek/deepseek-r1-0528:free",
   "alibaba/tongyi-deepresearch-30b-a3b:free"
 ];
 
-/* ===============================
-   AI call with fallback
-================================ */
+function cleanHTML(html) {
+  if (!html) return "";
+  return html
+    .replace(/```html|```/gi, "")
+    .replace(/^[\s\S]*?<(!DOCTYPE|html)/i, "<!DOCTYPE html")
+    .replace(/<\/html>[\s\S]*$/i, "</html>")
+    .trim();
+}
+
 async function callAI(prompt) {
   for (const model of MODELS) {
     try {
@@ -35,7 +38,8 @@ async function callAI(prompt) {
           messages: [
             {
               role: "system",
-              content: "You are a professional web developer. Return ONLY valid HTML."
+              content:
+                "Return ONLY valid HTML. No explanations. No markdown. No text outside HTML."
             },
             { role: "user", content: prompt }
           ]
@@ -44,115 +48,94 @@ async function callAI(prompt) {
 
       const data = await res.json();
       if (data?.choices?.[0]?.message?.content) {
-        return data.choices[0].message.content;
+        return cleanHTML(data.choices[0].message.content);
       }
-    } catch (err) {
-      console.error("Model failed:", model);
-    }
+    } catch {}
   }
-  throw new Error("All AI models failed");
+  throw new Error("AI failed");
 }
 
-/* ===============================
-   PREVIEW MODE (Single-page SPA)
-================================ */
+/* PREVIEW (SPA) */
 app.post("/preview", async (req, res) => {
   try {
     const prompt = `
-Create a SINGLE PAGE WEBSITE for preview.
+Create a SINGLE PAGE website.
 
 Rules:
-- All pages (home, about, services, contact) must be in ONE HTML file
-- Navigation must use JavaScript (no page reload)
-- Use real Unsplash images
-- Long, professional sections
-- Fully responsive
+- All sections in one HTML
+- JS navigation
+- Fixed header MUST include body padding-top
+- Long content
+- Real Unsplash images
+- DO NOT explain anything
 
-Website idea:
+Website:
 ${req.body.prompt}
 `;
-
     const html = await callAI(prompt);
     res.json({ html });
-  } catch (e) {
-    res.status(500).json({ error: "Preview generation failed" });
+  } catch {
+    res.status(500).json({ error: "Preview failed" });
   }
 });
 
-/* ===============================
-   EXPORT MODE (REAL MULTI-PAGE)
-================================ */
+/* EXPORT (MULTI PAGE ZIP) */
 app.post("/export", async (req, res) => {
   try {
     const prompt = `
-Create a REAL MULTI-PAGE WEBSITE.
+Create REAL MULTI PAGE website.
 
-Return EXACTLY in this format:
+Return EXACT format:
 
 ---index.html---
-(full HTML)
+(full html)
 
 ---about.html---
-(full HTML)
+(full html)
 
 ---services.html---
-(full HTML)
+(full html)
 
 ---contact.html---
-(full HTML)
+(full html)
 
 Rules:
-- Each file must be a COMPLETE HTML document
-- Use real Unsplash images
-- Proper <a href="..."> navigation between pages
-- Long professional content
-- Same header/footer on all pages
+- No explanation
+- Fixed header MUST include body padding-top
+- Long pages
+- Real Unsplash images
+- Proper links
 
-Website idea:
+Website:
 ${req.body.prompt}
 `;
 
-    const aiOutput = await callAI(prompt);
+    const output = await callAI(prompt);
 
     const siteDir = "site";
     fs.rmSync(siteDir, { recursive: true, force: true });
     fs.mkdirSync(siteDir);
 
-    const parts = aiOutput.split(/---(.+?)---/g);
-
+    const parts = output.split(/---(.+?)---/g);
     for (let i = 1; i < parts.length; i += 2) {
-      const filename = parts[i].trim();
-      const content = parts[i + 1].trim();
-      fs.writeFileSync(path.join(siteDir, filename), content);
+      fs.writeFileSync(
+        path.join(siteDir, parts[i].trim()),
+        cleanHTML(parts[i + 1])
+      );
     }
 
-    // Create ZIP
     const zipPath = "public/site.zip";
-    const output = fs.createWriteStream(zipPath);
-    const archive = archiver("zip", { zlib: { level: 9 } });
-
-    archive.pipe(output);
+    const archive = archiver("zip");
+    archive.pipe(fs.createWriteStream(zipPath));
     archive.directory(siteDir, false);
     await archive.finalize();
 
     res.json({ download: "/site.zip" });
-  } catch (e) {
-    console.error(e);
+  } catch {
     res.status(500).json({ error: "Export failed" });
   }
 });
 
-/* ===============================
-   Health check
-================================ */
-app.get("/health", (req, res) => {
-  res.send("OK");
-});
-
-/* ===============================
-   Start server
-================================ */
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log("API KEY loaded:", !!process.env.OPENROUTER_API_KEY);
-});
+app.listen(PORT, () =>
+  console.log("✅ Server running | API KEY:", !!process.env.OPENROUTER_API_KEY)
+);
