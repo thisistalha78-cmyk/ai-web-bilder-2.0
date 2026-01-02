@@ -1,154 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AI Website Builder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>Universal AI Website Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Inter, Arial, sans-serif;
-      background: linear-gradient(135deg, #020617, #0f172a);
-      color: #fff;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background: #020617;
+  color: #fff;
+}
 
-    header {
-      padding: 20px;
-      font-size: 28px;
-      font-weight: bold;
-    }
+header {
+  padding: 20px;
+  font-size: 26px;
+  font-weight: 700;
+}
 
-    .container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
 
-    textarea {
-      width: 100%;
-      min-height: 140px;
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      resize: vertical;
-    }
+textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+}
 
-    .controls {
-      margin-top: 12px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
 
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #38bdf8;
-      color: #020617;
-      font-weight: 700;
-    }
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #38bdf8;
+  color: #020617;
+}
 
-    button.secondary {
-      background: #22c55e;
-    }
+button.secondary {
+  background: #22c55e;
+}
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .preview-title {
-      margin-top: 30px;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    iframe {
-      margin-top: 12px;
-      width: 100%;
-      height: 850px;
-      background: #fff;
-      border-radius: 12px;
-      border: none;
-    }
-  </style>
+iframe {
+  width: 100%;
+  height: 900px;
+  border-radius: 12px;
+  border: none;
+  background: #fff;
+  margin-top: 20px;
+}
+</style>
 </head>
 
 <body>
-  <header>🤖 AI Website Builder</header>
 
-  <div class="container">
-    <textarea
-      id="prompt"
-      placeholder="Example: Create a modern SaaS landing page with hero, features, pricing, testimonials and CTA. Dark theme, clean typography.">
-    </textarea>
+<header>🤖 Universal AI Website Builder</header>
 
-    <div class="controls">
-      <button id="generate">Generate Website</button>
-      <button id="download" class="secondary" disabled>Download HTML</button>
-    </div>
+<div class="container">
+<textarea id="prompt" placeholder="
+Example:
+Create a photography portfolio website.
+Dark theme, large images, about section, services, gallery, testimonials and contact.
+"></textarea>
 
-    <div class="preview-title">Live Preview</div>
-    <iframe id="preview"></iframe>
-  </div>
+<div class="controls">
+  <button id="generate">Generate Website</button>
+  <button id="download" class="secondary" disabled>Download HTML</button>
+</div>
 
-  <script>
-    const generateBtn = document.getElementById("generate");
-    const downloadBtn = document.getElementById("download");
-    const promptInput = document.getElementById("prompt");
-    const previewFrame = document.getElementById("preview");
+<iframe id="preview"></iframe>
+</div>
 
-    let lastGeneratedHTML = "";
+<script>
+const generateBtn = document.getElementById("generate");
+const downloadBtn = document.getElementById("download");
+const preview = document.getElementById("preview");
+const promptInput = document.getElementById("prompt");
 
-    generateBtn.addEventListener("click", async () => {
-      const prompt = promptInput.value.trim();
-      if (!prompt) return alert("Please enter a prompt");
+let generatedHTML = "";
 
-      generateBtn.innerText = "Generating...";
-      generateBtn.disabled = true;
-      downloadBtn.disabled = true;
+generateBtn.onclick = async () => {
+  if (!promptInput.value.trim()) return alert("Enter a prompt");
 
-      try {
-        const res = await fetch("/preview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
+  generateBtn.innerText = "Generating...";
+  generateBtn.disabled = true;
 
-        const data = await res.json();
-        lastGeneratedHTML = data.html;
-        previewFrame.srcdoc = data.html;
-        downloadBtn.disabled = false;
+  const res = await fetch("/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: promptInput.value })
+  });
 
-      } catch (e) {
-        alert("Generation failed");
-        console.error(e);
-      }
+  const data = await res.json();
+  generatedHTML = data.html;
+  preview.srcdoc = generatedHTML;
 
-      generateBtn.innerText = "Generate Website";
-      generateBtn.disabled = false;
-    });
+  downloadBtn.disabled = false;
+  generateBtn.innerText = "Generate Website";
+  generateBtn.disabled = false;
+};
 
-    downloadBtn.addEventListener("click", async () => {
-      const res = await fetch("/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html: lastGeneratedHTML })
-      });
+downloadBtn.onclick = async () => {
+  const blob = new Blob([generatedHTML], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "website.html";
+  a.click();
+};
+</script>
 
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "generated-website.html";
-      a.click();
-    });
-  </script>
 </body>
 </html>
-
