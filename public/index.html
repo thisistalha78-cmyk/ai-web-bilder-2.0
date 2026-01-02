@@ -2,116 +2,294 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Website Builder</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arora’s Indian Restaurant | Authentic Indian Cuisine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO -->
+<meta name="description" content="Arora’s Modern Indian Bistro – Authentic Indian food in Freehold Township, NJ. Dine-in, takeout, and catering available.">
 
 <style>
-body {
+:root{
+  --primary:#6b1d77;
+  --dark:#1a1a1a;
+  --light:#ffffff;
+}
+
+*{box-sizing:border-box}
+
+body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#020617;
-  color:#fff;
-}
-header {
-  padding:20px;
-  font-size:26px;
-  font-weight:bold;
-}
-.container {
-  max-width:1200px;
-  margin:auto;
-  padding:20px;
-}
-textarea {
-  width:100%;
-  min-height:140px;
-  padding:14px;
-  font-size:16px;
-  border-radius:8px;
-  border:none;
-}
-.controls {
-  margin-top:12px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-button {
-  padding:12px 24px;
-  font-size:16px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-#generate { background:#38bdf8; color:#020617; }
-#download { background:#22c55e; color:#020617; }
-iframe {
-  width:100%;
-  height:900px;
-  border:none;
-  border-radius:12px;
-  margin-top:20px;
+  font-family: Georgia, "Times New Roman", serif;
+  color:#222;
   background:#fff;
+  line-height:1.7;
+}
+
+/* NAV */
+nav{
+  position:fixed;
+  top:0;
+  width:100%;
+  background:rgba(0,0,0,.7);
+  padding:14px 40px;
+  z-index:1000;
+  display:flex;
+  justify-content:center;
+  gap:24px;
+}
+
+nav a{
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  background:
+    linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),
+    url("https://images.unsplash.com/photo-1604908177522-432f9fcb5c9a?auto=format&fit=crop&w=1600&q=80")
+    center/cover;
+  color:#fff;
+  display:flex;
+  align-items:center;
+}
+
+.hero-content{
+  max-width:1100px;
+  margin:auto;
+  padding:40px;
+}
+
+.hero h1{
+  font-size:48px;
+  margin-bottom:10px;
+}
+
+.hero p{
+  max-width:600px;
+  font-size:18px;
+}
+
+.hero button{
+  margin-top:20px;
+  padding:14px 28px;
+  font-size:16px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+}
+
+/* SECTIONS */
+section{
+  padding:100px 40px;
+  max-width:1100px;
+  margin:auto;
+}
+
+section h2{
+  text-align:center;
+  color:var(--primary);
+  margin-bottom:40px;
+}
+
+/* ABOUT */
+.about{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+}
+
+.about img{
+  width:100%;
+  border-radius:14px;
+}
+
+/* MENU */
+.menu-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:30px;
+}
+
+.menu-card{
+  background:#fafafa;
+  padding:24px;
+  border-radius:14px;
+  text-align:center;
+}
+
+/* GALLERY */
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+}
+
+.gallery img{
+  width:100%;
+  border-radius:14px;
+}
+
+/* REVIEWS */
+.reviews{
+  background:#f7f0f8;
+  padding:100px 40px;
+}
+
+.review{
+  max-width:700px;
+  margin:40px auto;
+  text-align:center;
+  font-style:italic;
+}
+
+/* CONTACT */
+.contact{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+}
+
+footer{
+  background:#1a1a1a;
+  color:#ccc;
+  padding:60px 40px;
+}
+
+footer h3{color:#fff}
+
+/* MOBILE */
+@media(max-width:800px){
+  .about,.contact{grid-template-columns:1fr}
+  .hero h1{font-size:36px}
 }
 </style>
 </head>
 
 <body>
 
-<header>🤖 AI Website Builder</header>
+<nav>
+  <a href="#home">Home</a>
+  <a href="#about">About</a>
+  <a href="#menu">Menu</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#contact">Contact</a>
+</nav>
 
-<div class="container">
-<textarea id="prompt" placeholder="
-Example:
-Create a restaurant website with hero, menu, gallery, testimonials and contact section.
-"></textarea>
+<!-- HERO -->
+<section id="home" class="hero">
+  <div class="hero-content">
+    <h1>Arora Indian Restaurant</h1>
+    <p>
+      Authentic Indian cuisine in Freehold Township, NJ.
+      Fresh ingredients, traditional recipes, and modern elegance.
+    </p>
+    <button>Order Online</button>
+  </div>
+</section>
 
-<div class="controls">
-  <button id="generate">Generate Website</button>
-  <button id="download" disabled>Download HTML</button>
-</div>
+<!-- ABOUT -->
+<section id="about">
+  <h2>Welcome to Arora’s Modern Indian Bistro</h2>
 
-<iframe id="preview"></iframe>
-</div>
+  <div class="about">
+    <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=900&q=80">
+    <p>
+      At Arora’s Modern Indian Bistro, we proudly serve authentic Indian
+      cuisine inspired by traditional recipes and bold spices.
+      Located in Freehold Township, NJ, our restaurant offers a warm,
+      welcoming atmosphere perfect for family dining, celebrations,
+      and special occasions.
+      <br><br>
+      From rich curries to freshly baked naan from our tandoor,
+      every dish is prepared with passion and care.
+    </p>
+  </div>
+</section>
 
-<script>
-const generateBtn = document.getElementById("generate");
-const downloadBtn = document.getElementById("download");
-const preview = document.getElementById("preview");
-const promptInput = document.getElementById("prompt");
+<!-- MENU -->
+<section id="menu">
+  <h2>Popular Menu Items</h2>
 
-let generatedHTML = "";
+  <div class="menu-grid">
+    <div class="menu-card">
+      <h3>Chicken Tikka Masala</h3>
+      <p>Grilled chicken in creamy tomato sauce</p>
+    </div>
+    <div class="menu-card">
+      <h3>Butter Chicken</h3>
+      <p>Rich, buttery curry with tender chicken</p>
+    </div>
+    <div class="menu-card">
+      <h3>Paneer Saag</h3>
+      <p>Fresh paneer cooked with spinach</p>
+    </div>
+    <div class="menu-card">
+      <h3>Garlic Naan</h3>
+      <p>Freshly baked tandoor bread</p>
+    </div>
+  </div>
+</section>
 
-generateBtn.onclick = async () => {
-  if (!promptInput.value.trim()) return alert("Enter a prompt");
+<!-- GALLERY -->
+<section id="gallery">
+  <h2>Our Food & Ambiance</h2>
 
-  generateBtn.innerText = "Generating...";
-  generateBtn.disabled = true;
+  <div class="gallery">
+    <img src="https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80">
+    <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80">
+    <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80">
+  </div>
+</section>
 
-  const res = await fetch("/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: promptInput.value })
-  });
+<!-- REVIEWS -->
+<section class="reviews">
+  <h2>Customer Reviews</h2>
 
-  const data = await res.json();
-  generatedHTML = data.html;
-  preview.srcdoc = generatedHTML;
+  <div class="review">
+    “Absolutely delicious food and warm ambiance.
+    One of the best Indian restaurants in Freehold!”
+    <br><strong>— Priti Kumar</strong>
+  </div>
+</section>
 
-  downloadBtn.disabled = false;
-  generateBtn.innerText = "Generate Website";
-  generateBtn.disabled = false;
-};
+<!-- CONTACT -->
+<section id="contact">
+  <h2>Visit Us</h2>
 
-downloadBtn.onclick = () => {
-  const blob = new Blob([generatedHTML], { type: "text/html" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "website.html";
-  a.click();
-};
-</script>
+  <div class="contact">
+    <div>
+      <h3>Address</h3>
+      <p>
+        3338 U.S. 9<br>
+        Freehold Township, NJ 07728
+      </p>
+
+      <h3>Hours</h3>
+      <p>
+        Mon–Thu: 11AM – 9PM<br>
+        Fri–Sat: 11AM – 10PM<br>
+        Sunday: Closed
+      </p>
+    </div>
+
+    <div>
+      <h3>Contact</h3>
+      <p>
+        Phone: +1 732-252-5665<br>
+        Email: info@arorasbistro.com
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Arora’s Modern Indian Bistro. All rights reserved.</p>
+</footer>
 
 </body>
 </html>
