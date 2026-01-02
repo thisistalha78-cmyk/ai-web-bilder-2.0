@@ -80,3 +80,8 @@ section { padding:120px 40px; max-width:1100px; margin:auto; }
 </html>
 `;
 }
+
+</body>
+</html>
+`;
+}
