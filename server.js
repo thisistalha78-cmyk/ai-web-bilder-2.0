@@ -1,10 +1,9 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,113 +11,111 @@ const __dirname = path.dirname(__filename);
 app.use(express.json({ limit: "20mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// HOME
 app.get("/", (_, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// GENERATE PREVIEW
-app.post("/preview", async (req, res) => {
+// 🔥 MAIN GENERATOR
+app.post("/generate", async (req, res) => {
   const { prompt } = req.body;
 
-  // 🔥 later replace this with OpenRouter API output
-  const html = generateLongLandingPage(prompt);
+  // Replace this function with OpenRouter AI output
+  const html = generateUniversalWebsite(prompt);
+
   res.json({ html });
 });
 
-// EXPORT
-app.post("/export", (req, res) => {
-  const { html } = req.body;
-  const filePath = path.join(__dirname, "website.html");
-
-  fs.writeFileSync(filePath, html, "utf-8");
-  res.download(filePath, "website.html", () => fs.unlinkSync(filePath));
-});
-
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log("✅ Server running at http://localhost:3000");
 });
 
-// =======================
-// LONG SEO LANDING PAGE
-// =======================
-function generateLongLandingPage(prompt) {
+// ===============================
+// UNIVERSAL LONG WEBSITE TEMPLATE
+// ===============================
+function generateUniversalWebsite(prompt) {
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Generated Website</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body { margin:0; font-family:Inter,Arial; background:#020617; color:#fff; }
+body { margin:0; font-family:Arial; background:#0f172a; color:#fff; }
 nav {
-  position:fixed; top:0; width:100%;
-  background:rgba(2,6,23,0.85);
-  padding:16px 40px; display:flex; gap:20px;
+  position:fixed;
+  top:0;
+  width:100%;
+  padding:16px 32px;
+  background:rgba(2,6,23,.9);
+  display:flex;
+  gap:20px;
 }
 nav a { color:#38bdf8; text-decoration:none; font-weight:600; }
 section { padding:120px 40px; max-width:1100px; margin:auto; }
 .hero {
   min-height:100vh;
-  background:url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80') center/cover;
-  display:flex; align-items:center;
+  background:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80') center/cover;
 }
-.hero h1 { font-size:56px; max-width:700px; }
-.features, .pricing, .cta { background:#020617; }
 .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; }
-.card { background:#020617; border:1px solid #1e293b; padding:24px; border-radius:14px; }
-.price { font-size:42px; color:#22c55e; }
-.cta { text-align:center; }
-.cta button { font-size:20px; padding:16px 40px; background:#22c55e; border:none; border-radius:10px; }
-footer { padding:60px; text-align:center; color:#94a3b8; }
+.card { background:#020617; padding:24px; border-radius:14px; }
+footer { padding:80px; text-align:center; color:#94a3b8; }
 </style>
 </head>
 
 <body>
 
 <nav>
-  <a href="#hero">Home</a>
-  <a href="#features">Features</a>
-  <a href="#pricing">Pricing</a>
-  <a href="#cta">Get Started</a>
+  <a href="#home">Home</a>
+  <a href="#about">About</a>
+  <a href="#services">Services</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#contact">Contact</a>
 </nav>
 
-<section id="hero" class="hero">
-  <div>
-    <h1>${prompt}</h1>
-    <p>AI-generated, SEO-optimized, modern landing page.</p>
-  </div>
+<section id="home" class="hero">
+  <h1>${prompt}</h1>
+  <p>AI-generated website with long, crawlable content.</p>
 </section>
 
-<section id="features" class="features">
-  <h2>Features</h2>
+<section id="about">
+  <h2>About</h2>
+  <p>This section explains who you are, your mission, background, and story.</p>
+</section>
+
+<section id="services">
+  <h2>Services</h2>
   <div class="grid">
-    <div class="card">⚡ Fast Performance</div>
-    <div class="card">🎨 Modern Design</div>
-    <div class="card">🔍 SEO Optimized</div>
-    <div class="card">📱 Mobile Friendly</div>
+    <div class="card">Service One</div>
+    <div class="card">Service Two</div>
+    <div class="card">Service Three</div>
   </div>
 </section>
 
-<section id="pricing" class="pricing">
-  <h2>Pricing</h2>
+<section id="gallery">
+  <h2>Gallery</h2>
   <div class="grid">
-    <div class="card"><div class="price">$9</div>Starter</div>
-    <div class="card"><div class="price">$29</div>Pro</div>
-    <div class="card"><div class="price">$99</div>Enterprise</div>
+    <img src="https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=800&q=80" width="100%">
+    <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80" width="100%">
+    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80" width="100%">
   </div>
 </section>
 
-<section id="cta" class="cta">
-  <h2>Start Building Today</h2>
-  <button>Get Started</button>
+<section id="contact">
+  <h2>Contact</h2>
+  <p>Email: hello@example.com</p>
 </section>
 
 <footer>
-  © 2026 AI Website Builder. Generated with AI.
+  © 2026 AI Website Builder
 </footer>
+
+</body>
+</html>
+`;
+}
+
 
 </body>
 </html>
